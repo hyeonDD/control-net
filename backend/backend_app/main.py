@@ -1,11 +1,23 @@
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from backend_app.api.router import api_router
 from backend_app.core.config import settings
 
 app = FastAPI(openapi_url=f'{
               settings.PREFIX_URL}/openapi.json', docs_url=f'{settings.PREFIX_URL}/docs')
+origins = [
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get(f"{settings.PREFIX_URL}/")
