@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 
 import backend_app.schemas as schemas
-from backend_app.api.pixabay_utils import download_image
+from backend_app.api.utils_pixabay import download_image
 
 
 router = APIRouter()
