@@ -1,21 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { motion } from "framer-motion";
+import "./App.css";
 
 const App = () => {
   const [sketchUrl, setSketchUrl] = useState(null);
+  const [originalUrl, setOriginalUrl] = useState(null);
   const [keywords, setKeywords] = useState([]);
   const [selectedKeyword, setSelectedKeyword] = useState("");
   const [message, setMessage] = useState("");
+  const [score, setScore] = useState(0);
+  const [difficulty, setDifficulty] = useState("medium");
+  const [hint, setHint] = useState("");
+  const [showOriginal, setShowOriginal] = useState(false);
+
+  useEffect(() => {
+    const savedScore = localStorage.getItem("pixabayGameScore");
+    if (savedScore) setScore(parseInt(savedScore));
+  }, []);
 
   const startGame = async () => {
     setMessage("");
+    setHint("");
+    setShowOriginal(false);
+    setSketchUrl(null); // Reset sketchUrl before starting the game
+    setOriginalUrl(null); // Reset originalUrl before starting the game
+
     try {
       const response = await axios.post(
-        "http://localhost:8000/sketch-image/start_game"
+        `http://localhost:8000/sketch-image/start_game`
       );
-
-      // setSketchUrl(response.data.sketch_url);
-      // http://localhost:8000/sketch-image/?file_path=.%2Ftest_img%2Frandom_dog_image_edge.jpg
 
       const sketchResponse = await axios.get(
         "http://localhost:8000/sketch-image/",
@@ -26,12 +40,21 @@ const App = () => {
         }
       );
 
-      setSketchUrl(sketchResponse.request.responseURL);
+      const originalResponse = await axios.get(
+        "http://localhost:8000/sketch-image/",
+        {
+          params: {
+            file_path: response.data.original_url,
+          },
+        }
+      );
 
+      setSketchUrl(sketchResponse.request.responseURL);
+      setOriginalUrl(originalResponse.request.responseURL);
       setKeywords(response.data.keywords);
       setSelectedKeyword("");
     } catch (error) {
-      console.error("Error starting game:", error);
+      console.error("게임 시작 오류:", error);
       setSketchUrl(null);
     }
   };
@@ -46,38 +69,72 @@ const App = () => {
         selectedKeyword.toLowerCase() ===
         sketchUrl.split("random_")[1].split("_")[0];
       if (isCorrect) {
-        setMessage("Correct! Here is the original image.");
+        setMessage("정답입니다! 원본 이미지를 확인하세요.");
+        setScore(score + 10);
+        localStorage.setItem("pixabayGameScore", score + 10);
+        setShowOriginal(true);
       } else {
-        setMessage("Incorrect. Try again!");
+        setMessage("틀렸습니다. 다시 시도해보세요!");
+        setScore(Math.max(0, score - 5));
+        localStorage.setItem("pixabayGameScore", Math.max(0, score - 5));
       }
     } else {
-      setMessage("Please select a valid keyword.");
+      setMessage("유효한 키워드를 선택해주세요.");
     }
   };
 
+  const getHint = () => {
+    const correctKeyword = sketchUrl.split("random_")[1].split("_")[0];
+    setHint(`정답은 "${correctKeyword[0]}"로 시작합니다`);
+    setScore(Math.max(0, score - 2));
+    localStorage.setItem("pixabayGameScore", Math.max(0, score - 2));
+  };
+
   return (
-    <div style={{ textAlign: "center", padding: "20px" }}>
-      <h1>Guess the Pixabay Image</h1>
+    <div className="app-container">
+      <h1>이미지 키워드 맞추기</h1>
+      <div className="score">점수: {score}</div>
       {!sketchUrl ? (
-        <button onClick={startGame} style={{ padding: "10px 20px" }}>
-          Start Game
-        </button>
+        <div className="start-screen">
+          <select
+            value={difficulty}
+            onChange={(e) => setDifficulty(e.target.value)}
+            className="difficulty-select"
+          >
+            <option value="easy">쉬움</option>
+            <option value="medium">보통</option>
+            <option value="hard">어려움</option>
+          </select>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={startGame}
+            className="start-button"
+          >
+            게임 시작
+          </motion.button>
+        </div>
       ) : (
-        <div>
-          <h2>Guess the keyword for this image:</h2>
-          <img
-            src={sketchUrl}
-            alt="Sketch from Pixabay"
-            style={{ maxWidth: "100%", height: "auto" }}
-          />
-          <div>
+        <div className="game-screen">
+          <h2>이 이미지의 키워드를 맞춰보세요:</h2>
+          <div className="image-container">
+            <motion.img
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              src={sketchUrl}
+              alt="Pixabay 스케치"
+              className="sketch-image"
+            />
+          </div>
+          <div className="guess-container">
             <select
               value={selectedKeyword}
               onChange={handleKeywordChange}
-              style={{ padding: "10px", marginTop: "20px" }}
+              className="keyword-select"
             >
               <option value="" disabled>
-                Select a keyword
+                키워드 선택
               </option>
               {keywords.map((keyword) => (
                 <option key={keyword} value={keyword}>
@@ -85,14 +142,48 @@ const App = () => {
                 </option>
               ))}
             </select>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={submitGuess}
-              style={{ padding: "10px 20px", marginLeft: "10px" }}
+              className="submit-button"
             >
-              Submit Guess
-            </button>
+              제출
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={getHint}
+              className="hint-button"
+            >
+              힌트 보기 (-2점)
+            </motion.button>
           </div>
-          {message && <p>{message}</p>}
+          {message && <p className="message">{message}</p>}
+          {hint && <p className="hint">{hint}</p>}
+          {showOriginal && (
+            <div className="original-image-container">
+              <h3>원본 이미지:</h3>
+              <div className="image-container">
+                <motion.img
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                  src={originalUrl}
+                  alt="Pixabay 원본"
+                  className="original-image"
+                />
+              </div>
+            </div>
+          )}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={startGame}
+            className="next-button"
+          >
+            다음 이미지
+          </motion.button>
         </div>
       )}
     </div>
