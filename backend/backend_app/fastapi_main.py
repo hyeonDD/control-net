@@ -1,3 +1,5 @@
+import logging
+
 import uvicorn
 import os
 from fastapi import FastAPI
@@ -5,10 +7,40 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend_app.api.router import api_router
 from backend_app.core.config import settings
+from contextlib import asynccontextmanager
 
-app = FastAPI(openapi_url=f'{settings.PREFIX_URL}/openapi.json', docs_url=f'{settings.PREFIX_URL}/docs')
+from cldm.ddim_hacked import DDIMSampler
+from annotator.canny import CannyDetector
+from cldm.model import create_model, load_state_dict
+
+# logging 설정
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global model, ddim_sampler
+    # Load the ML model
+    logger.info("Loading ML models...")
+    model = create_model(settings.PATH_BASE_MODEL_V10).cpu()
+    model.load_state_dict(load_state_dict(settings.WEIGHT_PATH_BASE_MODEL_V10, location='cuda'))
+    model = model.cuda()
+    ddim_sampler = DDIMSampler(model)
+    logger.info("Models loaded successfully.")
+    yield
+    # Clean up the ML models and release the resources
+    logger.info("Cleaning up models...")
+    model = None
+    ddim_sampler = None
+    logger.info("Models cleaned up.")
+
+# app = FastAPI(openapi_url=f'{settings.PREFIX_URL}/openapi.json', docs_url=f'{settings.PREFIX_URL}/docs')
+
+app = FastAPI(lifespan=lifespan,openapi_url=f'{settings.PREFIX_URL}/openapi.json', docs_url=f'{settings.PREFIX_URL}/docs')
+
 origins = [
     "http://localhost:3000",
+    "http://localhost",
 ]
 
 app.add_middleware(
@@ -31,7 +63,6 @@ async def root():
 
 def start():
     uvicorn.run("fastapi_main:app", host="0.0.0.0", port=8000, reload=settings.SERVER_RELOAD)
-
 
 app.include_router(api_router, prefix=settings.PREFIX_URL)
 

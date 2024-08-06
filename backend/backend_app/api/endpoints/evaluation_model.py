@@ -15,10 +15,10 @@ router = APIRouter()
 
 apply_canny = CannyDetector()
 
-model = create_model(settings.PATH_BASE_MODEL_V10).cpu()
-model.load_state_dict(load_state_dict(settings.WEIGHT_PATH_BASE_MODEL_V10, location='cuda'))
-model = model.cuda()
-ddim_sampler = DDIMSampler(model)
+# model = create_model(settings.PATH_BASE_MODEL_V10).cpu()
+# model.load_state_dict(load_state_dict(settings.WEIGHT_PATH_BASE_MODEL_V10, location='cuda'))
+# model = model.cuda()
+# ddim_sampler = DDIMSampler(model)
 
 
 @router.post("/process")
@@ -38,6 +38,8 @@ async def process_image(
     low_threshold: int = Form(100),
     high_threshold: int = Form(200)
 ):
+    global model, ddim_sampler
+
     input_image = np.fromstring(await input_image.read(), np.uint8)
     input_image = cv2.imdecode(input_image, cv2.IMREAD_COLOR)
     
