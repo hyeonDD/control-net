@@ -1,5 +1,7 @@
 # ubuntu 환경 준비
 
+vast ai의 서버를 임대하여 base 이미지를 **nvidia/cuda:11.1.1-devel-ubuntu20.04**로 선택함
+
 ```sh
 # ubuntu package 업그레이드 및 설치
 apt update
@@ -17,6 +19,8 @@ pip3 install poetry
 # ControlNet V1.0 준비
 
 ```sh
+mkdir control_net_v1.0
+cd control_net_v1.0
 git clone https://github.com/lllyasviel/ControlNet.git
 mv ControlNet control_net_model
 
@@ -56,4 +60,21 @@ cd test_v0
 # ==============================================================================
 poetry shell
 poetry install
+```
+
+# 기본 데모 실행 (확인용)
+
+```sh
+cd ~/control_net_v1.0/control_net_model
+python gradio_canny2image.py
+```
+
+![demo cat](images/basic_demo.png)
+
+# 미니게임 실행
+
+```sh
+mkdir ~/control_net_mini_game
+cd ~/control_net_mini_game
+git clone https://github.com/hyeonDD/control-net.git
 ```
