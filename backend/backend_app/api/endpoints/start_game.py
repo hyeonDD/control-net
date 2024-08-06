@@ -27,6 +27,7 @@ async def start_game():
         edge_path = canny_edge_detection(file_path)
         return {
             "sketch_url": edge_path,
+            "original_url": file_path,
             "keywords": keywords
         }
     else:
