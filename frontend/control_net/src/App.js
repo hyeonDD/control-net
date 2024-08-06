@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import "./App.css";
 
 const App = () => {
+  // 점수 초기화
+  localStorage.removeItem("pixabayGameScore");
   const [sketchUrl, setSketchUrl] = useState(null);
   const [originalUrl, setOriginalUrl] = useState(null);
   const [keywords, setKeywords] = useState([]);
