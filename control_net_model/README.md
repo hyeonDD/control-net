@@ -67,14 +67,52 @@ poetry install
 ```sh
 cd ~/control_net_v1.0/control_net_model
 python gradio_canny2image.py
+exit # 가상환경 종료
 ```
 
 ![demo cat](images/basic_demo.png)
 
-# 미니게임 실행
+# 데모 실행
 
 ```sh
-mkdir ~/control_net_mini_game
-cd ~/control_net_mini_game
+# node 18 버전 설치
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+apt-get install nodejs
+# yarn 설치
+npm install -g yarn
+# 필요 패키지 설치
+apt-get install -y libgl1-mesa-glx
+```
+
+```sh
+# code 준비
+mkdir ~/my_control_net_demo
+cd ~/my_control_net_demo
 git clone https://github.com/hyeonDD/control-net.git
+```
+
+```sh
+# frontend 실행
+cd control-net/frontend/control_net/
+yarn install
+yarn start &
+```
+
+```sh
+# backend 실행
+
+# --------------------
+# backend_app 경로밑에 .env 파일 만들기
+# --------------------
+
+cd ~/my_control_net_demo/control-net/backend
+poetry install
+poetry shell
+cd backend_app
+python main.py &
+```
+
+```sh
+# 종료방법
+
 ```
