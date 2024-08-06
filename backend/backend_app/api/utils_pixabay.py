@@ -1,6 +1,7 @@
 from backend_app.core.config import settings
 import aiohttp
 import random
+import uuid
 
 
 async def fetch_image_data(session, url):
@@ -15,8 +16,7 @@ async def download_image(query):
     """
     dir에 저장
     """
-    url = f'https://pixabay.com/api/?key={
-        settings.PIXABAY_API_KEY}&q={query}&image_type=photo'
+    url = f'https://pixabay.com/api/?key={settings.PIXABAY_API_KEY}&q={query}&image_type=photo'
 
     async with aiohttp.ClientSession() as session:
         data = await fetch_image_data(session, url)
@@ -24,7 +24,10 @@ async def download_image(query):
         if 'hits' in data and len(data['hits']) > 0:
             image = random.choice(data['hits'])
             image_url = image['largeImageURL']
-            file_path = f'./test_img/random_{query}_image.jpg'
+            # 다운로드 이미지 하드코딩
+            unique_prefix = uuid.uuid4().hex
+            os.makedirs('./result_images', exist_ok=True)
+            file_path = f'./result_images/random_{query}_{unique_prefix}.jpg'
 
             async with session.get(image_url) as response:
                 with open(file_path, 'wb') as file:
