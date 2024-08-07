@@ -65,7 +65,7 @@ async def process_image(
 
 
     output_paths = []
-
+    result_images = result_images[1:]
     # output image 저장
     for i, image in enumerate(result_images):
         # f'./result_images/{unique_prefix}/input.png'
@@ -84,6 +84,7 @@ async def process_image(
         # psnr_scores.append(calculate_psnr(input_image, result_image))
 
     return {
+        'input_image': input_image_path,
         'process_time': process_time,
         'output_paths': output_paths,
         'score_fid': fid_scores,
