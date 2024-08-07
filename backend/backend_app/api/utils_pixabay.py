@@ -26,7 +26,6 @@ async def download_image(query):
             image_url = image['largeImageURL']
             # 다운로드 이미지 하드코딩
             unique_prefix = uuid.uuid4().hex
-            os.makedirs('./result_images', exist_ok=True)
             file_path = f'./result_images/random_{query}_{unique_prefix}.jpg'
 
             async with session.get(image_url) as response:

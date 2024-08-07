@@ -12,26 +12,41 @@ from contextlib import asynccontextmanager
 from cldm.ddim_hacked import DDIMSampler
 from annotator.canny import CannyDetector
 from cldm.model import create_model, load_state_dict
+from global_model import ml_models
 
 # logging 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+"""
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Load the ML model
+    ml_models["answer_to_everything"] = fake_answer_to_everything_ml_model
+    yield
+    # Clean up the ML models and release the resources
+    ml_models.clear()
+"""
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global model, ddim_sampler
     # Load the ML model
     logger.info("Loading ML models...")
+    ml_models["apply_canny"] = CannyDetector()
+
     model = create_model(settings.PATH_BASE_MODEL_V10).cpu()
     model.load_state_dict(load_state_dict(settings.WEIGHT_PATH_BASE_MODEL_V10, location='cuda'))
     model = model.cuda()
-    ddim_sampler = DDIMSampler(model)
+
+    ml_models["BASE_MODEL_V10"] = model
+    ml_models["ddim_sampler"] = DDIMSampler(model)
+
     logger.info("Models loaded successfully.")
     yield
     # Clean up the ML models and release the resources
     logger.info("Cleaning up models...")
-    model = None
-    ddim_sampler = None
+    # Clean up the ML models and release the resources
+    ml_models.clear()
+
     logger.info("Models cleaned up.")
 
 # app = FastAPI(openapi_url=f'{settings.PREFIX_URL}/openapi.json', docs_url=f'{settings.PREFIX_URL}/docs')
