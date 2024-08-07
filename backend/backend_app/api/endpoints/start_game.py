@@ -11,7 +11,7 @@ router = APIRouter()
 def canny_edge_detection(image_path):
     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     edges = cv2.Canny(image, 100, 200)
-    edge_path = image_path.replace('.jpg', '_edge.jpg')
+    edge_path = image_path.replace('input.jpg', 'output.jpg')
     cv2.imwrite(edge_path, edges)
     return edge_path
 
@@ -33,7 +33,3 @@ async def start_game():
     else:
         raise HTTPException(status_code=404, detail="Image not found")
 
-
-@router.get("/")
-async def serve_image(file_path: str):
-    return FileResponse(file_path)

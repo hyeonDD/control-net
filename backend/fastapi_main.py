@@ -66,10 +66,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.on_event("startup")
-async def startup_event():
-    os.makedirs('./result_images', exist_ok=True)
-    os.makedirs('./result_images', exist_ok=True)
+# @app.on_event("startup")
+# async def startup_event():
+#     os.makedirs('./result_images', exist_ok=True)
+#     os.makedirs('./result_images', exist_ok=True)
 
 @app.get(f"{settings.PREFIX_URL}/")
 async def root():

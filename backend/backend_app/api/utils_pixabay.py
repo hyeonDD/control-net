@@ -2,6 +2,7 @@ from backend_app.core.config import settings
 import aiohttp
 import random
 import uuid
+import os
 
 
 async def fetch_image_data(session, url):
@@ -24,9 +25,11 @@ async def download_image(query):
         if 'hits' in data and len(data['hits']) > 0:
             image = random.choice(data['hits'])
             image_url = image['largeImageURL']
-            # 다운로드 이미지 하드코딩
+
             unique_prefix = uuid.uuid4().hex
-            file_path = f'./result_images/random_{query}_{unique_prefix}.jpg'
+            file_path = f'./result_images/game/{unique_prefix}'
+            os.makedirs(file_path, exist_ok=True)
+            file_path = f'{file_path}/{query}_input.jpg'
 
             async with session.get(image_url) as response:
                 with open(file_path, 'wb') as file:
