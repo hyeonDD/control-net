@@ -28,6 +28,23 @@ const Button = styled.button`
   font-size: 16px;
   margin-top: 20px;
   width: 100%;
+  &:disabled {
+    background-color: #a3c9f7;
+    cursor: not-allowed;
+  }
+`;
+
+const LoadingBar = styled.div`
+  width: 100%;
+  height: 4px;
+  background-color: #4285f4;
+  animation: loading 2s infinite;
+
+  @keyframes loading {
+    0% { width: 0; }
+    50% { width: 100%; }
+    100% { width: 0; }
+  }
 `;
 
 function ImageProcessor() {
@@ -46,18 +63,27 @@ function ImageProcessor() {
     n_prompt: 'longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality'
   });
   const [results, setResults] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
+    setLoading(true); // 로딩 시작
+    setResults(null);
     const formData = new FormData();
     formData.append('input_image', image);
     formData.append('prompt', prompt);
-    
+
     Object.keys(options).forEach(key => {
       formData.append(key, options[key]);
     });
 
-    const response = await processImage(formData);
-    setResults(response);
+    try {
+      const response = await processImage(formData);
+      setResults(response);
+    } catch (error) {
+      console.error("Error processing image:", error);
+    } finally {
+      setLoading(false); // 로딩 종료
+    }
   };
 
   return (
@@ -66,7 +92,8 @@ function ImageProcessor() {
       <ImageUpload setImage={setImage} />
       <PromptInput prompt={prompt} setPrompt={setPrompt} />
       <AdvancedOptions options={options} setOptions={setOptions} />
-      <Button onClick={handleSubmit}>실행</Button>
+      {loading && <LoadingBar />}
+      <Button onClick={handleSubmit} disabled={loading}>실행</Button>
       {results && <Results results={results} />}
     </Container>
   );
