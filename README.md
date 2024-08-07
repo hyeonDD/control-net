@@ -49,6 +49,8 @@ curl -LO https://huggingface.co/lllyasviel/ControlNet/resolve/main/models/contro
 
 ## 가상환경 설치 및 fastapi 실행
 
+**실행전 backend 경로 밑의 .env_sample파일을 참고하여 필요한것을 설정해두어야 합니다.**
+
 ```sh
 poetry install
 poetry shell
