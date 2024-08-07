@@ -62,7 +62,7 @@ function ImageProcessor() {
 
   return (
     <Container>
-      <Title>Canny Edge 테스트 페이지</Title>
+      <Title>모델 테스트 페이지</Title>
       <ImageUpload setImage={setImage} />
       <PromptInput prompt={prompt} setPrompt={setPrompt} />
       <AdvancedOptions options={options} setOptions={setOptions} />

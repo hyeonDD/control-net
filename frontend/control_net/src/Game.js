@@ -35,23 +35,23 @@ const Game = () => {
       );
 
       const sketchResponse = await axios.get(
-        "http://localhost:8000/sketch-image/",
+        "http://localhost:8000/image/",
         {
           params: {
             file_path: response.data.sketch_url,
           },
         }
       );
+      
 
       const originalResponse = await axios.get(
-        "http://localhost:8000/sketch-image/",
+        "http://localhost:8000/image/",
         {
           params: {
             file_path: response.data.original_url,
           },
         }
       );
-
       setSketchUrl(sketchResponse.request.responseURL);
       setOriginalUrl(originalResponse.request.responseURL);
       setKeywords(response.data.keywords);
@@ -69,8 +69,7 @@ const Game = () => {
   const submitGuess = () => {
     if (keywords.includes(selectedKeyword)) {
       const isCorrect =
-        selectedKeyword.toLowerCase() ===
-        sketchUrl.split("random_")[1].split("_")[0];
+        selectedKeyword.toLowerCase() === sketchUrl.split('%2F').pop().split('_')[0];
       if (isCorrect) {
         setMessage("정답입니다! 원본 이미지를 확인하세요.");
         setScore(score + 10);
@@ -87,7 +86,8 @@ const Game = () => {
   };
 
   const getHint = () => {
-    const correctKeyword = sketchUrl.split("random_")[1].split("_")[0];
+    const correctKeyword = sketchUrl.split('%2F').pop().split('_')[0];
+
     setHint(`정답은 "${correctKeyword[0]}"로 시작합니다`);
     setScore(Math.max(0, score - 2));
     localStorage.setItem("pixabayGameScore", Math.max(0, score - 2));
